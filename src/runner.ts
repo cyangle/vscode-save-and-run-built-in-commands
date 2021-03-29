@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 import * as path from 'path';
-var ncp = require("copy-paste");
-var endOfLine = require('os').EOL;
 
 
 interface ICommand {
