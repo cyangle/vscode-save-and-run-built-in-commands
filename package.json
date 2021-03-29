@@ -2,7 +2,7 @@
 	"name": "vscode-save-and-run-built-in-commands",
 	"displayName": "vscode-save-and-run-built-in-commands",
 	"description": "Run vscode built in commands on file changes",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"publisher": "cyangle",
 	"license": "Apache-2.0",
 	"repository": "https://github.com/cyangle/vscode-save-and-run-built-in-commands",
@@ -52,6 +52,11 @@
 										"type": "string",
 										"description": "Regex for matching files *not* to run commands on.",
 										"default": ".*"
+									},
+									"terminalName": {
+										"type": "string",
+										"description": "Name of the terminal to run shell commands on.",
+										"default": "run_on_change"
 									},
 									"cmd": {
 										"type": "array",

@@ -17,22 +17,27 @@ Add "saveAndRunExt" configuration to user or workspace settings.
 
 - "watchFolderPath" - folder path to watch for file changes
 - "commands" - array of commands that will be run whenever a file is saved.
+	- "terminalName" - name of the terminal to run commands
   - "match" - a regex for matching which files to run commands on
   - "cmd" - array of shell or built in commands to run. Can include parameters that will be replaced at runtime (see Placeholder Tokens section below).
+  - "isShellCommand": true - boolean to run command in shell or as built in command.
 
 ## Sample Config
 
 ```json
 "saveAndRunExt": {
-  "watchFolderPath": "./src/**",
+  "watchFolderPath": "**/run/*",
 	"commands": [
 		{
-			"match": ".*",
-			"isShellCommand" : false,
+			"match": ".*/test\\.js",
+			"terminalName": "run_on_change",
+			"isShellCommand": false,
 			"cmd": ["myExtension.amazingCommand"]
 		},
 		{
-			"match": "\\.txt$",
+			"match": ".*\\.txt$",
+			"terminalName": "run_on_change",
+			"isShellCommand": true,
 			"cmd": ["echo 'Executed in the terminal: I am a .txt file ${file}.'"]
 		}
 	]

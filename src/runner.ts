@@ -5,171 +5,182 @@ var endOfLine = require('os').EOL;
 
 
 interface ICommand {
-	match?: string;
-	notMatch?: string;
-	cmd: Array<string>;
-	isAsync: boolean;
-	isShellCommand: boolean;
+  match?: string;
+  notMatch?: string;
+  terminalName?: string;
+  cmd: Array<string>;
+  isAsync: boolean;
+  isShellCommand: boolean;
 
 }
 
 interface IConfig {
-	shell: string;
-	autoClearConsole: boolean;
-	watchFolderPath: string;
-	commands: Array<ICommand>;
+  shell: string;
+  autoClearConsole: boolean;
+  watchFolderPath: string;
+  commands: Array<ICommand>;
 }
 
 export class RunOnSaveExtExtension {
-	private outputChannel: vscode.OutputChannel;
-	private context: vscode.ExtensionContext;
-	private config: IConfig;
+  private outputChannel: vscode.OutputChannel;
+  private context: vscode.ExtensionContext;
+  private config: IConfig;
 
-	constructor(context: vscode.ExtensionContext) {
-		this.context = context;
-		this.outputChannel = vscode.window.createOutputChannel('Run On Save Ext');
-		this.config = <IConfig><any>vscode.workspace.getConfiguration('saveAndRunExt');
-	}
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context;
+    this.outputChannel = vscode.window.createOutputChannel('Run On Save Ext');
+    this.config = <IConfig><any>vscode.workspace.getConfiguration('saveAndRunExt');
+  }
 
-	private runInTerminal(command: Array<string>) {
-		ncp.copy(command.join(";" + endOfLine) + endOfLine, function () {
-			vscode.commands.executeCommand("workbench.action.terminal.focus").then(() => {
-				vscode.commands.executeCommand("workbench.action.terminal.paste").then(() => {
-					var editor = vscode.window.activeTextEditor;
-					if (editor === undefined) {
-						console.log("editor is undefined!");
-					} else {
-						vscode.window.showTextDocument(editor.document, editor.viewColumn);
-					}
-				});
-			});
-		});
-	}
+  private runInTerminal(command: ICommand) {
+    const terminalName = command.terminalName || 'run_on_change';
+    var terminal = vscode.window.terminals.find((term) => {
+      return term.name === terminalName;
+    });
 
-	private runAll(commands: ICommand[]): void {
-		commands.forEach(command => {
-			if (command.isShellCommand) {
-				this.runInTerminal(command.cmd);
-			}
-			else {
-				command.cmd.forEach((cmd) => {
-					vscode.commands.executeCommand(cmd);
-				});
-			}
-		});
-	}
+    if (terminal === undefined) {
+      terminal = vscode.window.createTerminal({
+        name: terminalName,
+        hideFromUser: false
+      });
+    }
 
-	public get isEnabled(): boolean {
-		return !!this.context.globalState.get('isEnabled', true);
-	}
-	public set isEnabled(value: boolean) {
-		this.context.globalState.update('isEnabled', value);
-		this.showOutputMessage();
-	}
 
-	public get shell(): string {
-		return this.config.shell;
-	}
+    if (terminal === undefined) {
+      this.showOutputMessage(`Can not create terminal with name: ${terminalName}`);
+    } else {
+      // terminal?.show();
+      command.cmd.forEach((cmdStr) => {
+        terminal?.sendText(cmdStr);
+      });
+    }
+  }
 
-	public get autoClearConsole(): boolean {
-		return !!this.config.autoClearConsole;
-	}
+  private runAll(commands: ICommand[]): void {
+    commands.forEach(command => {
+      if (command.isShellCommand) {
+        this.runInTerminal(command);
+      }
+      else {
+        command.cmd.forEach((cmd) => {
+          vscode.commands.executeCommand(cmd);
+        });
+      }
+    });
+  }
 
-	public get commands(): Array<ICommand> {
-		return this.config.commands || [];
-	}
+  public get isEnabled(): boolean {
+    return !!this.context.globalState.get('isEnabled', true);
+  }
+  public set isEnabled(value: boolean) {
+    this.context.globalState.update('isEnabled', value);
+    this.showOutputMessage();
+  }
 
-	public get watchFolderPath(): string {
-		return this.config.watchFolderPath || "./";
-	}
+  public get shell(): string {
+    return this.config.shell;
+  }
 
-	public loadConfig(): void {
-		this.config = <IConfig><any>vscode.workspace.getConfiguration('saveAndRunExt');
-	}
+  public get autoClearConsole(): boolean {
+    return !!this.config.autoClearConsole;
+  }
 
-	public showOutputMessage(message?: string): void {
-		message = message || `Run On Save Ext ${this.isEnabled ? 'enabled' : 'disabled'}.`;
-		this.outputChannel.appendLine(message);
-	}
+  public get commands(): Array<ICommand> {
+    return this.config.commands || [];
+  }
 
-	public showStatusMessage(message: string): vscode.Disposable {
-		this.showOutputMessage(message);
-		return vscode.window.setStatusBarMessage(message);
-	}
+  public get watchFolderPath(): string {
+    return this.config.watchFolderPath || "./";
+  }
 
-	public runCommands(fileName: string): void {
-		if (this.autoClearConsole) {
-			this.outputChannel.clear();
-		}
+  public loadConfig(): void {
+    this.config = <IConfig><any>vscode.workspace.getConfiguration('saveAndRunExt');
+  }
 
-		if (!this.isEnabled || this.commands.length === 0) {
-			this.showOutputMessage();
-			return;
-		}
+  public showOutputMessage(message?: string): void {
+    message = message || `Run On Save Ext ${this.isEnabled ? 'enabled' : 'disabled'}.`;
+    this.outputChannel.appendLine(message);
+  }
 
-		this.showOutputMessage(`File changed at: ${fileName}`);
+  public showStatusMessage(message: string): vscode.Disposable {
+    this.showOutputMessage(message);
+    return vscode.window.setStatusBarMessage(message);
+  }
 
-		var match = (pattern: string) => pattern && pattern.length > 0 && new RegExp(pattern).test(fileName);
+  public runCommands(fileName: string): void {
+    if (this.autoClearConsole) {
+      this.outputChannel.clear();
+    }
 
-		var commandConfigs = this.commands
-			.filter(cfg => {
-				var matchPattern = cfg.match || '';
-				var negatePattern = cfg.notMatch || '';
+    if (!this.isEnabled || this.commands.length === 0) {
+      this.showOutputMessage();
+      return;
+    }
 
-				// if no match pattern was provided, or if match pattern succeeds
-				var isMatch = matchPattern.length === 0 || match(matchPattern);
+    this.showOutputMessage(`File changed at: ${fileName}`);
 
-				// negation has to be explicitly provided
-				var isNegate = negatePattern.length > 0 && match(negatePattern);
+    var match = (pattern: string) => pattern && pattern.length > 0 && new RegExp(pattern).test(fileName);
 
-				// negation wins over match
-				return !isNegate && isMatch;
-			});
+    var commandConfigs = this.commands
+      .filter(cfg => {
+        var matchPattern = cfg.match || '';
+        var negatePattern = cfg.notMatch || '';
 
-		if (commandConfigs.length === 0) {
-			return;
-		}
+        // if no match pattern was provided, or if match pattern succeeds
+        var isMatch = matchPattern.length === 0 || match(matchPattern);
 
-		this.showStatusMessage('Running on save commands...');
+        // negation has to be explicitly provided
+        var isNegate = negatePattern.length > 0 && match(negatePattern);
 
-		// build our commands by replacing parameters with values
-		var commands: Array<ICommand> = [];
-		for (let cfg of commandConfigs) {
-			var cmdStrs = cfg.cmd;
+        // negation wins over match
+        return !isNegate && isMatch;
+      });
 
-			var extName = path.extname(fileName);
+    if (commandConfigs.length === 0) {
+      return;
+    }
 
-			var root = vscode.workspace.rootPath;
-			var relativeFile = "." + fileName;
-			if (root !== undefined) {
-				relativeFile = "." + fileName.replace(root, "");
-			}
+    this.showStatusMessage('Running on save commands...');
 
-			var results = cmdStrs.map((cmdStr) => {
-				cmdStr = cmdStr.replace(/\${relativeFile}/g, relativeFile);
-				cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
-				cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${vscode.workspace.rootPath}`);
-				cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(fileName)}`);
-				cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(fileName)}`);
-				cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
-				cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(fileName, extName)}`);
-				cmdStr = cmdStr.replace(/\${cwd}/g, `${process.cwd()}`);
+    // build our commands by replacing parameters with values
+    var commands: Array<ICommand> = [];
+    for (let cfg of commandConfigs) {
+      var cmdStrs = cfg.cmd;
 
-				// replace environment variables ${env.Name}
-				cmdStr = cmdStr.replace(/\${env\.([^}]+)}/g, (sub: string, envName: string) => {
-					return process.env[envName] || "";
-				});
-				return cmdStr;
-			});
+      var extName = path.extname(fileName);
 
-			commands.push({
-				cmd: results,
-				isAsync: !!cfg.isAsync,
-				isShellCommand: !!((cfg.isShellCommand === false) ? false : true)
-			});
-		}
+      var root = vscode.workspace.rootPath;
+      var relativeFile = "." + fileName;
+      if (root !== undefined) {
+        relativeFile = "." + fileName.replace(root, "");
+      }
 
-		//this._runCommands(commands);
-		this.runAll(commands);
-	}
+      var results = cmdStrs.map((cmdStr) => {
+        cmdStr = cmdStr.replace(/\${relativeFile}/g, relativeFile);
+        cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
+        cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${vscode.workspace.rootPath}`);
+        cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(fileName)}`);
+        cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(fileName)}`);
+        cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
+        cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(fileName, extName)}`);
+        cmdStr = cmdStr.replace(/\${cwd}/g, `${process.cwd()}`);
+
+        // replace environment variables ${env.Name}
+        cmdStr = cmdStr.replace(/\${env\.([^}]+)}/g, (sub: string, envName: string) => {
+          return process.env[envName] || "";
+        });
+        return cmdStr;
+      });
+
+      commands.push({
+        terminalName: cfg.terminalName || 'run_on_change',
+        cmd: results,
+        isAsync: !!cfg.isAsync,
+        isShellCommand: !!((cfg.isShellCommand === false) ? false : true)
+      });
+    }
+
+    //this._runCommands(commands);
+    this.runAll(commands);
+  }
 }
