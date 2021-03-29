@@ -7,10 +7,6 @@ Run vscode built in commands or shell commands on file changes.
 - Configure multiple commands (terminal or command from VS Code extension) that run when a file is saved
 - Regex pattern matching for files that trigger commands running
 
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
 ## Configuration
 
 Add "saveAndRunExt" configuration to user or workspace settings.

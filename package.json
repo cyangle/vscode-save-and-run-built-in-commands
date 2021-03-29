@@ -1,6 +1,6 @@
 {
 	"name": "vscode-save-and-run-built-in-commands",
-	"displayName": "vscode-save-and-run-built-in-commands",
+	"displayName": "Save and Run Built In",
 	"description": "Run vscode built in commands on file changes",
 	"version": "0.0.4",
 	"publisher": "cyangle",
