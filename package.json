@@ -3,6 +3,7 @@
 	"displayName": "vscode-save-and-run-built-in-commands",
 	"description": "Run vscode built in commands on file changes",
 	"version": "0.0.1",
+	"publisher": "cyangle",
 	"license": "Apache-2.0",
 	"engines": {
 		"vscode": "^1.54.0"

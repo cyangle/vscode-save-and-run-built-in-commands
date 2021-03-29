@@ -1,70 +1,69 @@
 # vscode-save-and-run-built-in-commands README
 
-This is the README for your extension "vscode-save-and-run-built-in-commands". After writing up a brief description, we recommend including the following sections.
+Run vscode built in commands or shell commands on file changes.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Configure multiple commands (terminal or command from VS Code extension) that run when a file is saved
+- Regex pattern matching for files that trigger commands running
 
 ## Requirements
 
 If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
-## Extension Settings
+## Configuration
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Add "saveAndRunExt" configuration to user or workspace settings.
 
-For example:
+- "watchFolderPath" - folder path to watch for file changes
+- "commands" - array of commands that will be run whenever a file is saved.
+  - "match" - a regex for matching which files to run commands on
+  - "cmd" - array of shell or built in commands to run. Can include parameters that will be replaced at runtime (see Placeholder Tokens section below).
 
-This extension contributes the following settings:
+## Sample Config
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+```json
+"saveAndRunExt": {
+  "watchFolderPath": "./src/**",
+	"commands": [
+		{
+			"match": ".*",
+			"isShellCommand" : false,
+			"cmd": ["myExtension.amazingCommand"]
+		},
+		{
+			"match": "\\.txt$",
+			"cmd": ["echo 'Executed in the terminal: I am a .txt file ${file}.'"]
+		}
+	]
+}
+```
 
-## Known Issues
+## Commands
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+The following commands are exposed in the command palette
 
-## Release Notes
+- `Save and Run Ext : Enable`
+- `Save and Run Ext : Disable`
 
-Users appreciate release notes as you update your extension.
 
-### 1.0.0
+## Placeholder Tokens
 
-Initial release of ...
+Commands support placeholders similar to tasks.json.
 
-### 1.0.1
+- `${workspaceRoot}`: workspace root folder
+- `${file}`: path of saved file
+- `${relativeFile}`: relative path of saved file
+- `${fileBasename}`: saved file's basename
+- `${fileDirname}`: directory name of saved file
+- `${fileExtname}`: extension (including .) of saved file
+- `${fileBasenameNoExt}`: saved file's basename without extension
+- `${cwd}`: current working directory
 
-Fixed issue #.
+### Environment Variable Tokens
 
-### 1.1.0
+- `${env.Name}`
 
-Added features X, Y, and Z.
+## License
 
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Apache 2.0
