@@ -13,7 +13,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:vscode-save-and-run-built-in-commands.helloWorld"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
