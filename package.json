@@ -19,10 +19,64 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "vscode-save-and-run-built-in-commands.helloWorld",
-				"title": "save and run built in commands"
+				"command": "extension.saveAndRunExt.enable",
+				"title": "Save and Run Ext : Enable"
+			},
+			{
+				"command": "extension.saveAndRunExt.disable",
+				"title": "Save and Run Ext : Disable"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Save & Run command configuration.",
+			"type": "object",
+			"properties": {
+				"saveAndRunExt": {
+					"type": "object",
+					"properties": {
+						"watchFolderPath": {
+							"type": "string"
+						},
+						"commands": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"match": {
+										"type": "string",
+										"description": "Regex for matching files to run commands on.",
+										"default": ".*"
+									},
+									"notMatch": {
+										"type": "string",
+										"description": "Regex for matching files *not* to run commands on.",
+										"default": ".*"
+									},
+									"cmd": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "Command to execute on save.",
+										"default": "echo ${file}"
+									},
+									"isAsync": {
+										"type": "boolean",
+										"description": "Run command asynchronously.",
+										"default": false
+									},
+									"isShellCommand": {
+										"type": "boolean",
+										"description": "Run command in terminal.",
+										"default": true
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
