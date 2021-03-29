@@ -2,7 +2,7 @@
 	"name": "vscode-save-and-run-built-in-commands",
 	"displayName": "vscode-save-and-run-built-in-commands",
 	"description": "Run vscode built in commands on file changes",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "cyangle",
 	"license": "Apache-2.0",
 	"repository": "https://github.com/cyangle/vscode-save-and-run-built-in-commands",
@@ -35,7 +35,8 @@
 					"type": "object",
 					"properties": {
 						"watchFolderPath": {
-							"type": "string"
+							"type": "string",
+							"default": "**/src/*"
 						},
 						"commands": {
 							"type": "array",
@@ -58,7 +59,10 @@
 											"type": "string"
 										},
 										"description": "Command to execute on save.",
-										"default": "echo ${file}"
+										"default": [
+											"workbench.action.debug.stop",
+											"workbench.action.debug.start"
+										]
 									},
 									"isAsync": {
 										"type": "boolean",
@@ -68,7 +72,7 @@
 									"isShellCommand": {
 										"type": "boolean",
 										"description": "Run command in terminal.",
-										"default": true
+										"default": false
 									}
 								}
 							}
@@ -85,6 +89,9 @@
 		"pretest": "yarn run compile && yarn run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
+	},
+	"dependencies": {
+		"copy-paste": "^1.3.0"
 	},
 	"devDependencies": {
 		"@types/vscode": "^1.54.0",

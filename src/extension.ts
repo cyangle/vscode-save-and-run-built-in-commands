@@ -32,16 +32,18 @@ export function activate(context: vscode.ExtensionContext) {
 		extension.isEnabled = false;
 	});
 
-	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-		extension.runCommands(document.fileName);
-	});
+	// vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+	// 	extension.runCommands(document.fileName);
+	// });
 
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);
 
 	const watcher = vscode.workspace.createFileSystemWatcher(extension.watchFolderPath, false, false, false);
+	let disposeStatus = extension.showStatusMessage(`Start watching: ${extension.watchFolderPath}`);
+	disposeStatus.dispose();
 	watcher.onDidChange((uri) => {
-		extension.runCommands(uri.toString());
+		extension.runCommands(uri.path);
 	});
 }
 

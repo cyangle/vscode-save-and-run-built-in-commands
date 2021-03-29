@@ -31,13 +31,13 @@ export class RunOnSaveExtExtension {
 		this.config = <IConfig><any>vscode.workspace.getConfiguration('saveAndRunExt');
 	}
 
-	private runInTerminal(command: string) {
-		ncp.copy(command + endOfLine, function () {
+	private runInTerminal(command: Array<string>) {
+		ncp.copy(command.join(";" + endOfLine) + endOfLine, function () {
 			vscode.commands.executeCommand("workbench.action.terminal.focus").then(() => {
 				vscode.commands.executeCommand("workbench.action.terminal.paste").then(() => {
 					var editor = vscode.window.activeTextEditor;
 					if (editor === undefined) {
-						console.log("editor is undefined");
+						console.log("editor is undefined!");
 					} else {
 						vscode.window.showTextDocument(editor.document, editor.viewColumn);
 					}
@@ -48,14 +48,14 @@ export class RunOnSaveExtExtension {
 
 	private runAll(commands: ICommand[]): void {
 		commands.forEach(command => {
-			if (command.isShellCommand)
-				{command.cmd.forEach((cmd) => {
-					this.runInTerminal(cmd);
-				});}
-			else
-				{command.cmd.forEach((cmd) => {
+			if (command.isShellCommand) {
+				this.runInTerminal(command.cmd);
+			}
+			else {
+				command.cmd.forEach((cmd) => {
 					vscode.commands.executeCommand(cmd);
-				});}
+				});
+			}
 		});
 	}
 
@@ -145,7 +145,7 @@ export class RunOnSaveExtExtension {
 				relativeFile = "." + fileName.replace(root, "");
 			}
 
-			cmdStrs.map((cmdStr) => {
+			var results = cmdStrs.map((cmdStr) => {
 				cmdStr = cmdStr.replace(/\${relativeFile}/g, relativeFile);
 				cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
 				cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${vscode.workspace.rootPath}`);
@@ -163,7 +163,7 @@ export class RunOnSaveExtExtension {
 			});
 
 			commands.push({
-				cmd: cmdStrs,
+				cmd: results,
 				isAsync: !!cfg.isAsync,
 				isShellCommand: !!((cfg.isShellCommand === false) ? false : true)
 			});
