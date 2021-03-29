@@ -1,8 +1,9 @@
 {
-  "name": "vscode-save-and-run-built-in-commands",
+	"name": "vscode-save-and-run-built-in-commands",
 	"displayName": "vscode-save-and-run-built-in-commands",
 	"description": "Run vscode built in commands on file changes",
 	"version": "0.0.1",
+	"license": "Apache-2.0",
 	"engines": {
 		"vscode": "^1.54.0"
 	},
@@ -10,14 +11,14 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:vscode-save-and-run-built-in-commands.helloWorld"
+		"onCommand:vscode-save-and-run-built-in-commands.helloWorld"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "vscode-save-and-run-built-in-commands.helloWorld",
-				"title": "Hello World"
+				"title": "save and run built in commands"
 			}
 		]
 	},

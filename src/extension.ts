@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { RunOnSaveExtExtension } from "./runner";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -10,18 +11,39 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "vscode-save-and-run-built-in-commands" is now active!');
 
+
+	var extension = new RunOnSaveExtExtension(context);
+	extension.showOutputMessage();
+
+	vscode.workspace.onDidChangeConfiguration(() => {
+		let disposeStatus = extension.showStatusMessage('Run On Save Ext: Reloading config.');
+		extension.loadConfig();
+		disposeStatus.dispose();
+	});
+
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vscode-save-and-run-built-in-commands.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-save-and-run-built-in-commands!');
+	let disposable1 = vscode.commands.registerCommand('extension.saveAndRunExt.enable', () => {
+		extension.isEnabled = true;
 	});
 
-	context.subscriptions.push(disposable);
+	let disposable2 = vscode.commands.registerCommand('extension.saveAndRunExt.disable', () => {
+		extension.isEnabled = false;
+	});
+
+	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+		extension.runCommands(document.fileName);
+	});
+
+	context.subscriptions.push(disposable1);
+	context.subscriptions.push(disposable2);
+
+	const watcher = vscode.workspace.createFileSystemWatcher(extension.watchFolderPath, false, false, false);
+	watcher.onDidChange((uri) => {
+		extension.runCommands(uri.toString());
+	});
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
