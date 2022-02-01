@@ -2,7 +2,7 @@
 	"name": "vscode-save-and-run-built-in-commands",
 	"displayName": "Save and Run Built In",
 	"description": "Run vscode built in commands on file changes",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"publisher": "cyangle",
 	"license": "Apache-2.0",
 	"repository": "https://github.com/cyangle/vscode-save-and-run-built-in-commands",
@@ -88,6 +88,7 @@
 		}
 	},
 	"scripts": {
+		"publish": "vsce publish --no-yarn",
 		"vscode:prepublish": "yarn run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
